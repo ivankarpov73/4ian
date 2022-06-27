@@ -12,6 +12,7 @@ namespace gdjs {
 
     // @ts-ignore - pixi-tilemap types to be added.
     _pixiObject: any;
+    _pixiTileMapData: any;
 
     /**
      * @param runtimeObject The object to render
@@ -23,6 +24,7 @@ namespace gdjs {
     ) {
       this._object = runtimeObject;
       this._runtimeScene = runtimeScene;
+      this._pixiTileMapData = null;
 
       // Load (or reset)
       if (this._pixiObject === undefined) {
@@ -51,7 +53,7 @@ namespace gdjs {
 
     _loadTileMapWithTileset(tileMapJsonData, tilesetJsonData) {
       // @ts-ignore - TODO: Add typings for pixi-tilemap-helper.
-      const pixiTileMapData = PixiTileMapHelper.loadPixiTileMapData(
+      this._pixiTileMapData = PixiTileMapHelper.loadPixiTileMapData(
         (textureName) =>
           this._runtimeScene
             .getGame()
@@ -64,11 +66,11 @@ namespace gdjs {
         this._object._tilemapJsonFile,
         this._object._tilesetJsonFile
       );
-      if (pixiTileMapData) {
+      if (this._pixiTileMapData) {
         // @ts-ignore - TODO: Add typings for pixi-tilemap-helper.
         PixiTileMapHelper.updatePixiTileMap(
           this._pixiObject,
-          pixiTileMapData,
+          this._pixiTileMapData,
           this._object._displayMode,
           this._object._layerIndex,
           // @ts-ignore - TODO: Add typings for pako.
@@ -148,11 +150,15 @@ namespace gdjs {
     }
 
     getWidth(): float {
-      return this._pixiObject.width;
+      return this._pixiTileMapData
+        ? this._pixiTileMapData.tilemapWidth * this._pixiObject.scale.x
+        : 0;
     }
 
     getHeight(): float {
-      return this._pixiObject.height;
+      return this._pixiTileMapData
+        ? this._pixiTileMapData.tilemapHeight * this._pixiObject.scale.y
+        : 0;
     }
   }
   export const TileMapRuntimeObjectRenderer =

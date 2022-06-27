@@ -522,6 +522,7 @@ module.exports = {
       );
 
       this._pixiObject = new Tilemap.CompositeRectTileLayer(0);
+      this._pixiTileMapData = null;
 
       // Implement `containsPoint` so that we can set `interactive` to true and
       // the Tilemap will properly emit events when hovered/clicked.
@@ -532,9 +533,8 @@ module.exports = {
         this._pixiObject.worldTransform.applyInverse(position, localPosition);
 
         // Check if the point is inside the object bounds
-        const originalWidth = this._pixiObject.width / this._pixiObject.scale.x;
-        const originalHeight =
-          this._pixiObject.height / this._pixiObject.scale.y;
+        const originalWidth = this.getDefaultWidth();
+        const originalHeight = this.getDefaultHeight();
 
         return (
           localPosition.x >= 0 &&
@@ -594,7 +594,7 @@ module.exports = {
         .get('tilesetJsonFile')
         .getValue();
 
-      const pixiTileMapData = PixiTilemapHelper.loadPixiTileMapData(
+      this._pixiTileMapData = PixiTilemapHelper.loadPixiTileMapData(
         (textureName) =>
           this._pixiResourcesLoader.getPIXITexture(this._project, textureName),
         tilesetJsonData
@@ -605,10 +605,10 @@ module.exports = {
         tilesetJsonFile
       );
 
-      if (pixiTileMapData) {
+      if (this._pixiTileMapData) {
         PixiTilemapHelper.updatePixiTileMap(
           this._pixiObject,
-          pixiTileMapData,
+          this._pixiTileMapData,
           displayMode,
           layerIndex,
           pako
@@ -651,8 +651,10 @@ module.exports = {
      */
     RenderedTileMapInstance.prototype.update = function () {
       if (this._instance.hasCustomSize()) {
-        this._pixiObject.width = this._instance.getCustomWidth();
-        this._pixiObject.height = this._instance.getCustomHeight();
+        this._pixiObject.scale.x =
+          this._instance.getCustomWidth() / this.getDefaultWidth();
+        this._pixiObject.scale.y =
+          this._instance.getCustomHeight() / this.getDefaultHeight();
       } else {
         this._pixiObject.scale.x = 1;
         this._pixiObject.scale.y = 1;
@@ -682,14 +684,14 @@ module.exports = {
      * Return the width of the instance, when it's not resized.
      */
     RenderedTileMapInstance.prototype.getDefaultWidth = function () {
-      return this._pixiObject.width / this._pixiObject.scale.x;
+      return !!this._pixiTileMapData ? this._pixiTileMapData.tilemapWidth : 0;
     };
 
     /**
      * Return the height of the instance, when it's not resized.
      */
     RenderedTileMapInstance.prototype.getDefaultHeight = function () {
-      return this._pixiObject.height / this._pixiObject.scale.y;
+      return !!this._pixiTileMapData ? this._pixiTileMapData.tilemapHeight : 0;
     };
 
     objectsRenderingService.registerInstanceRenderer(
