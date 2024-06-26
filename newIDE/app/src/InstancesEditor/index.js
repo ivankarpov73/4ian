@@ -41,6 +41,7 @@ import {
   clampInstancesEditorZoom,
   getWheelStepZoomFactor,
 } from '../Utils/ZoomUtils';
+import TileMapTilePreview from './TileMapTilePreview';
 const gd: libGDevelop = global.gd;
 
 export const instancesEditorId = 'instances-editor-canvas';
@@ -91,6 +92,7 @@ export type InstancesEditorPropsWithoutSizeAndScroll = {|
   ) => void,
   pauseRendering: boolean,
   instancesEditorShortcutsCallbacks: InstancesEditorShortcutsCallbacks,
+  selectedTileMapTile: ?{| x: number, y: number |},
 |};
 
 type Props = {|
@@ -119,6 +121,7 @@ export default class InstancesEditor extends Component<Props> {
   _instancesAdder: InstancesAdder;
   selectionRectangle: SelectionRectangle;
   selectedInstances: SelectedInstances;
+  tileMapTilePreview: TileMapTilePreview;
   highlightedInstance: HighlightedInstance;
   instancesResizer: InstancesResizer;
   instancesRotator: InstancesRotator;
@@ -399,6 +402,9 @@ export default class InstancesEditor extends Component<Props> {
     if (this.highlightedInstance) {
       this.pixiContainer.removeChild(this.highlightedInstance.getPixiObject());
     }
+    if (this.tileMapTilePreview) {
+      this.pixiContainer.removeChild(this.tileMapTilePreview.getPixiObject());
+    }
     if (this.selectedInstances) {
       this.pixiContainer.removeChild(this.selectedInstances.getPixiContainer());
     }
@@ -454,6 +460,14 @@ export default class InstancesEditor extends Component<Props> {
       onPanMove: this._onPanMove,
       onPanEnd: this._onPanEnd,
     });
+    this.tileMapTilePreview = new TileMapTilePreview({
+      instancesSelection: this.props.instancesSelection,
+      project: props.project,
+      layout: props.layout,
+      getTileMapTile: this.getSelectedTileMapTile,
+      getLastCursorSceneCoordinates: this.getLastCursorSceneCoordinates,
+      viewPosition: this.viewPosition,
+    });
     this.highlightedInstance = new HighlightedInstance({
       instanceMeasurer: this.instancesRenderer.getInstanceMeasurer(),
       toCanvasCoordinates: this.viewPosition.toCanvasCoordinates,
@@ -492,6 +506,7 @@ export default class InstancesEditor extends Component<Props> {
     this.pixiContainer.addChild(this.windowMask.getPixiObject());
     this.pixiContainer.addChild(this.selectedInstances.getPixiContainer());
     this.pixiContainer.addChild(this.highlightedInstance.getPixiObject());
+    this.pixiContainer.addChild(this.tileMapTilePreview.getPixiObject());
     this.pixiContainer.addChild(this.statusBar.getPixiObject());
   }
 
@@ -622,6 +637,10 @@ export default class InstancesEditor extends Component<Props> {
       beforeZoomCursorPosition[1] - afterZoomCursorPosition[1]
     );
   }
+
+  getSelectedTileMapTile = () => {
+    return this.props.selectedTileMapTile;
+  };
 
   getZoomFactor = () => {
     return this.props.instancesEditorSettings.zoomFactor;
@@ -1170,6 +1189,7 @@ export default class InstancesEditor extends Component<Props> {
       this.canvasCursor.render();
       this.grid.render();
       this.highlightedInstance.render();
+      this.tileMapTilePreview.render();
       this.selectedInstances.render();
       this.selectionRectangle.render();
       this.windowBorder.render();
