@@ -745,6 +745,12 @@ export default class InstancesEditor extends Component<Props> {
         tileSet.rowCount * selectedTileMapTile.x + selectedTileMapTile.y
       );
       renderedInstance.updatePixiTileMap();
+      object
+        .getConfiguration()
+        .updateProperty(
+          'tilemap',
+          JSON.stringify(editableTileMap.toJSObject())
+        );
     }
   };
 
