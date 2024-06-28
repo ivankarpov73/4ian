@@ -334,6 +334,14 @@ export default class InstancesRenderer {
     }
   }
 
+  getRendererOfInstance(layerName: string, instance: gdInitialInstance) {
+    if (!this.layersRenderers.hasOwnProperty(layerName)) {
+      return null;
+    }
+    const layerRenderer = this.layersRenderers[layerName];
+    return layerRenderer.getRendererOfInstance(instance);
+  }
+
   /**
    * Clean up rendered layers that are not existing anymore
    */

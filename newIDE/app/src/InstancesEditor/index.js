@@ -41,7 +41,9 @@ import {
   clampInstancesEditorZoom,
   getWheelStepZoomFactor,
 } from '../Utils/ZoomUtils';
-import TileMapTilePreview from './TileMapTilePreview';
+import TileMapTilePreview, { getTileSet } from './TileMapTilePreview';
+import ClickInterceptor from './ClickInterceptor';
+import getObjectByName from '../Utils/GetObjectByName';
 const gd: libGDevelop = global.gd;
 
 export const instancesEditorId = 'instances-editor-canvas';
@@ -122,6 +124,7 @@ export default class InstancesEditor extends Component<Props> {
   selectionRectangle: SelectionRectangle;
   selectedInstances: SelectedInstances;
   tileMapTilePreview: TileMapTilePreview;
+  clickInterceptor: ClickInterceptor;
   highlightedInstance: HighlightedInstance;
   instancesResizer: InstancesResizer;
   instancesRotator: InstancesRotator;
@@ -405,6 +408,9 @@ export default class InstancesEditor extends Component<Props> {
     if (this.tileMapTilePreview) {
       this.pixiContainer.removeChild(this.tileMapTilePreview.getPixiObject());
     }
+    if (this.clickInterceptor) {
+      this.pixiContainer.removeChild(this.clickInterceptor.getPixiObject());
+    }
     if (this.selectedInstances) {
       this.pixiContainer.removeChild(this.selectedInstances.getPixiContainer());
     }
@@ -468,6 +474,11 @@ export default class InstancesEditor extends Component<Props> {
       getLastCursorSceneCoordinates: this.getLastCursorSceneCoordinates,
       viewPosition: this.viewPosition,
     });
+    this.clickInterceptor = new ClickInterceptor({
+      getTileMapTile: this.getSelectedTileMapTile,
+      viewPosition: this.viewPosition,
+      onClick: this._onInterceptClick,
+    });
     this.highlightedInstance = new HighlightedInstance({
       instanceMeasurer: this.instancesRenderer.getInstanceMeasurer(),
       toCanvasCoordinates: this.viewPosition.toCanvasCoordinates,
@@ -507,6 +518,7 @@ export default class InstancesEditor extends Component<Props> {
     this.pixiContainer.addChild(this.selectedInstances.getPixiContainer());
     this.pixiContainer.addChild(this.highlightedInstance.getPixiObject());
     this.pixiContainer.addChild(this.tileMapTilePreview.getPixiObject());
+    this.pixiContainer.addChild(this.clickInterceptor.getPixiObject());
     this.pixiContainer.addChild(this.statusBar.getPixiObject());
   }
 
@@ -685,6 +697,55 @@ export default class InstancesEditor extends Component<Props> {
   _onMouseMove = (x: number, y: number) => {
     this.lastCursorX = x;
     this.lastCursorY = y;
+  };
+
+  _onInterceptClick = (sceneCoordinates: {| x: number, y: number |}) => {
+    const {
+      selectedTileMapTile,
+      instancesSelection,
+      project,
+      layout,
+    } = this.props;
+    if (!selectedTileMapTile) return;
+    const selectedInstances = instancesSelection.getSelectedInstances();
+    if (selectedInstances.length !== 1) return;
+    const selectedInstance = selectedInstances[0];
+    const renderedInstance = this.instancesRenderer.getRendererOfInstance(
+      selectedInstance.getLayer(),
+      selectedInstance
+    );
+    const object = getObjectByName(
+      project,
+      layout,
+      selectedInstance.getObjectName()
+    );
+    if (!object) return;
+    if (
+      object.getType() === 'TileMap::SimpleTileMap' &&
+      renderedInstance.constructor.name === 'RenderedSimpleTileMapInstance'
+    ) {
+      const editableTileMap = renderedInstance.getEditableTileMap();
+      if (!editableTileMap) {
+        console.error(
+          `Could not find the editable tile map for instance of object ${selectedInstance.getObjectName()}`
+        );
+        return;
+      }
+      const tileSet = getTileSet(object);
+      const x = Math.floor(
+        (sceneCoordinates.x - selectedInstance.getX()) / tileSet.tileSize
+      );
+      const y = Math.floor(
+        (sceneCoordinates.y - selectedInstance.getY()) / tileSet.tileSize
+      );
+      const editableTileMapLayer = editableTileMap.getTileLayer(0);
+      editableTileMapLayer.setTile(
+        x,
+        y,
+        tileSet.rowCount * selectedTileMapTile.x + selectedTileMapTile.y
+      );
+      renderedInstance.updatePixiTileMap();
+    }
   };
 
   _onDownBackground = (x: number, y: number, event?: PointerEvent) => {
@@ -1190,6 +1251,7 @@ export default class InstancesEditor extends Component<Props> {
       this.grid.render();
       this.highlightedInstance.render();
       this.tileMapTilePreview.render();
+      this.clickInterceptor.render();
       this.selectedInstances.render();
       this.selectionRectangle.render();
       this.windowBorder.render();

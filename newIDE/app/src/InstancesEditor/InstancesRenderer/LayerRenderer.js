@@ -155,7 +155,7 @@ export default class LayerRenderer {
       var renderedInstance:
         | RenderedInstance
         | Rendered3DInstance
-        | null = this.getRendererOfInstance(instance);
+        | null = this.getOrCreateRendererOfInstance(instance);
       if (!renderedInstance) return;
 
       const pixiObject: PIXI.DisplayObject | null = renderedInstance.getPixiObject();
@@ -229,6 +229,13 @@ export default class LayerRenderer {
     return this._threePlaneMesh;
   }
 
+  getRendererOfInstance(
+    instance: gdInitialInstance
+  ): RenderedInstance | Rendered3DInstance | null {
+    if (!this.renderedInstances.hasOwnProperty(instance.ptr)) return null;
+    return this.renderedInstances[instance.ptr];
+  }
+
   getUnrotatedInstanceLeft = (instance: gdInitialInstance) => {
     return (
       instance.getX() -
@@ -259,7 +266,7 @@ export default class LayerRenderer {
   };
 
   getUnrotatedInstanceSize = (instance: gdInitialInstance) => {
-    const renderedInstance = this.getRendererOfInstance(instance);
+    const renderedInstance = this.getOrCreateRendererOfInstance(instance);
     const hasCustomSize = instance.hasCustomSize();
     const hasCustomDepth = instance.hasCustomDepth();
     const width = hasCustomSize
@@ -365,7 +372,7 @@ export default class LayerRenderer {
     return bounds;
   }
 
-  getRendererOfInstance = (instance: gdInitialInstance) => {
+  getOrCreateRendererOfInstance = (instance: gdInitialInstance) => {
     var renderedInstance = this.renderedInstances[instance.ptr];
     if (renderedInstance === undefined) {
       //No renderer associated yet, the instance must have been just created!...
