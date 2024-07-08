@@ -42,6 +42,7 @@ import {
   getWheelStepZoomFactor,
 } from '../Utils/ZoomUtils';
 import TileMapTilePreview, { getTileSet } from './TileMapTilePreview';
+import { type TileMapTileSelection } from './TileMapPainter';
 import ClickInterceptor from './ClickInterceptor';
 import getObjectByName from '../Utils/GetObjectByName';
 const gd: libGDevelop = global.gd;
@@ -94,7 +95,7 @@ export type InstancesEditorPropsWithoutSizeAndScroll = {|
   ) => void,
   pauseRendering: boolean,
   instancesEditorShortcutsCallbacks: InstancesEditorShortcutsCallbacks,
-  selectedTileMapTile: ?{| x: number, y: number |},
+  tileMapTileSelection: ?TileMapTileSelection,
 |};
 
 type Props = {|
@@ -470,13 +471,13 @@ export default class InstancesEditor extends Component<Props> {
       instancesSelection: this.props.instancesSelection,
       project: props.project,
       layout: props.layout,
-      getTileMapTile: this.getSelectedTileMapTile,
+      getTileMapTileSelection: this.getTileMapTileSelection,
       getRendererOfInstance: this.getRendererOfInstance,
       getLastCursorSceneCoordinates: this.getLastCursorSceneCoordinates,
       viewPosition: this.viewPosition,
     });
     this.clickInterceptor = new ClickInterceptor({
-      getTileMapTile: this.getSelectedTileMapTile,
+      getTileMapTileSelection: this.getTileMapTileSelection,
       viewPosition: this.viewPosition,
       onClick: this._onInterceptClick,
     });
@@ -651,8 +652,8 @@ export default class InstancesEditor extends Component<Props> {
     );
   }
 
-  getSelectedTileMapTile = () => {
-    return this.props.selectedTileMapTile;
+  getTileMapTileSelection = () => {
+    return this.props.tileMapTileSelection;
   };
 
   getZoomFactor = () => {
@@ -702,12 +703,12 @@ export default class InstancesEditor extends Component<Props> {
 
   _onInterceptClick = (sceneCoordinates: {| x: number, y: number |}) => {
     const {
-      selectedTileMapTile,
+      tileMapTileSelection,
       instancesSelection,
       project,
       layout,
     } = this.props;
-    if (!selectedTileMapTile) return;
+    if (!tileMapTileSelection || !tileMapTileSelection.single) return;
     const selectedInstances = instancesSelection.getSelectedInstances();
     if (selectedInstances.length !== 1) return;
     const selectedInstance = selectedInstances[0];
@@ -756,7 +757,8 @@ export default class InstancesEditor extends Component<Props> {
       } = editableTileMapLayer.setTile(
         x,
         y,
-        tileSet.rowCount * selectedTileMapTile.x + selectedTileMapTile.y
+        tileSet.rowCount * tileMapTileSelection.single.x +
+          tileMapTileSelection.single.y
       );
       // TODO: Take rotation into account
       selectedInstance.setX(
