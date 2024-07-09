@@ -504,12 +504,14 @@ export const makeSchema = ({
       {
         name: 'Rotation',
         type: 'row',
-        title: i18n._(t`Rotation`),
         preventWrap: true,
         removeSpacers: true,
-        children: getRotationXAndRotationYFields({ i18n }),
+        title: i18n._(t`Rotation`),
+        children: [
+          getRotationZField({ i18n }),
+          ...getRotationXAndRotationYFields({ i18n }),
+        ],
       },
-      getRotationZField({ i18n }),
     ];
   }
 
@@ -523,7 +525,6 @@ export const makeSchema = ({
       removeSpacers: true,
       children: getXAndYFields({ i18n }),
     },
-    getZOrderField({ i18n }),
     {
       name: 'Size',
       type: 'row',
@@ -562,6 +563,7 @@ export const makeSchema = ({
         },
       ],
     },
+    getZOrderField({ i18n }),
     getLayerField({ i18n, layout }),
     {
       name: 'Rotation',
