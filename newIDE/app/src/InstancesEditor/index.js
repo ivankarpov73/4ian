@@ -828,12 +828,10 @@ export default class InstancesEditor extends Component<Props> {
         }
       }
       renderedInstance.updatePixiTileMap();
-      object
-        .getConfiguration()
-        .updateProperty(
-          'tilemap',
-          JSON.stringify(editableTileMap.toJSObject())
-        );
+      selectedInstance.setRawStringProperty(
+        'tilemap',
+        JSON.stringify(editableTileMap.toJSObject())
+      );
     }
   };
 
