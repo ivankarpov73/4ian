@@ -42,8 +42,8 @@ describe('Multiplayer', () => {
               actionOnPlayerDisconnect: 'Destroy',
             },
             {
-              name: 'AnchorBehavior',
-              type: 'AnchorBehavior::AnchorBehavior',
+              name: 'DummyBehavior',
+              type: 'MyDummyExtension::DummyBehavior',
             },
           ],
           effects: [],
@@ -313,15 +313,17 @@ describe('Multiplayer', () => {
   };
 
   beforeEach(() => {
-    _originalP2pIfAny = gdjs.evtTools.p2p;
+    _originalP2pIfAny = gdjs.multiplayerPeerJsHelper;
     gdjs.multiplayer.disableMultiplayerForTesting = false;
     gdjs.multiplayer._isLobbyGameRunning = true;
+    gdjs.multiplayer._isReadyToSendOrReceiveGameUpdateMessages = true;
     gdjs.multiplayer._lobby = fakeLobby;
   });
   afterEach(() => {
-    gdjs.evtTools.p2p = _originalP2pIfAny;
+    gdjs.multiplayerPeerJsHelper = _originalP2pIfAny;
     gdjs.multiplayer.disableMultiplayerForTesting = true;
     gdjs.multiplayer._isLobbyGameRunning = false;
+    gdjs.multiplayer._isReadyToSendOrReceiveGameUpdateMessages = false;
     gdjs.multiplayer._lobby = null;
   });
 
@@ -2085,15 +2087,14 @@ describe('Multiplayer', () => {
         p1RuntimeScene,
         'MySpriteObject'
       )[0];
-      // Ensure anchor behavior is there.
-      /** @type {gdjs.AnchorRuntimeBehavior | null} */
-      // @ts-ignore - We know this returns an AnchorRuntimeBehavior
-      const p1AnchorBehaviorOriginal = p1SpriteObjectOriginal.getBehavior(
-        'AnchorBehavior'
+      // Ensure dummy behavior is there.
+      /** @type {gdjs.DummyRuntimeBehavior | null} */
+      // @ts-ignore - We know this returns an DummyRuntimeBehavior
+      const p1DummyBehaviorOriginal = p1SpriteObjectOriginal.getBehavior(
+        'DummyBehavior'
       );
-      if (!p1AnchorBehaviorOriginal)
-        throw new Error('No anchor behavior found');
-      expect(p1AnchorBehaviorOriginal._activated).to.be(true);
+      if (!p1DummyBehaviorOriginal) throw new Error('No dummy behavior found');
+      expect(p1DummyBehaviorOriginal._activated).to.be(true);
 
       p1RuntimeScene.renderAndStep(1000 / 60);
 
@@ -2112,15 +2113,14 @@ describe('Multiplayer', () => {
         p2RuntimeScene,
         'MySpriteObject'
       )[0];
-      // Ensure anchor behavior is there.
-      /** @type {gdjs.AnchorRuntimeBehavior | null} */
-      // @ts-ignore - We know this returns an AnchorRuntimeBehavior
-      const p2AnchorBehaviorOriginal = p2SpriteObjectOriginal.getBehavior(
-        'AnchorBehavior'
+      // Ensure dummy behavior is there.
+      /** @type {gdjs.DummyRuntimeBehavior | null} */
+      // @ts-ignore - We know this returns an DummyRuntimeBehavior
+      const p2DummyBehaviorOriginal = p2SpriteObjectOriginal.getBehavior(
+        'DummyBehavior'
       );
-      if (!p2AnchorBehaviorOriginal)
-        throw new Error('No anchor behavior found');
-      expect(p2AnchorBehaviorOriginal._activated).to.be(true);
+      if (!p2DummyBehaviorOriginal) throw new Error('No dummy behavior found');
+      expect(p2DummyBehaviorOriginal._activated).to.be(true);
 
       // Deactivate the behavior on the player 2
       {
@@ -2136,12 +2136,12 @@ describe('Multiplayer', () => {
           p2RuntimeScene,
           'MySpriteObject'
         )[0];
-        /** @type {gdjs.AnchorRuntimeBehavior | null} */
-        // @ts-ignore - We know this returns an AnchorRuntimeBehavior
-        const p2AnchorBehavior = p2SpriteObject.getBehavior('AnchorBehavior');
-        if (!p2AnchorBehavior) throw new Error('No anchor behavior found');
-        expect(p2AnchorBehavior._activated).to.be(true);
-        p2AnchorBehavior.activate(false);
+        /** @type {gdjs.DummyRuntimeBehavior | null} */
+        // @ts-ignore - We know this returns an DummyRuntimeBehavior
+        const p2DummyBehavior = p2SpriteObject.getBehavior('DummyBehavior');
+        if (!p2DummyBehavior) throw new Error('No dummy behavior found');
+        expect(p2DummyBehavior._activated).to.be(true);
+        p2DummyBehavior.activate(false);
         p2RuntimeScene.renderAndStep(1000 / 60);
       }
 
@@ -2174,11 +2174,11 @@ describe('Multiplayer', () => {
           p2RuntimeScene,
           'MySpriteObject'
         )[0];
-        /** @type {gdjs.AnchorRuntimeBehavior | null} */
-        // @ts-ignore - We know this returns an AnchorRuntimeBehavior
-        const p2AnchorBehavior = p2SpriteObject.getBehavior('AnchorBehavior');
-        if (!p2AnchorBehavior) throw new Error('No anchor behavior found');
-        expect(p2AnchorBehavior._activated).to.be(true);
+        /** @type {gdjs.DummyRuntimeBehavior | null} */
+        // @ts-ignore - We know this returns an DummyRuntimeBehavior
+        const p2DummyBehavior = p2SpriteObject.getBehavior('DummyBehavior');
+        if (!p2DummyBehavior) throw new Error('No dummy behavior found');
+        expect(p2DummyBehavior._activated).to.be(true);
       }
 
       // Deactivate the behavior on the host.
@@ -2195,11 +2195,11 @@ describe('Multiplayer', () => {
           p1RuntimeScene,
           'MySpriteObject'
         )[0];
-        /** @type {gdjs.AnchorRuntimeBehavior | null} */
-        // @ts-ignore - We know this returns an AnchorRuntimeBehavior
-        const p1AnchorBehavior = p1SpriteObject.getBehavior('AnchorBehavior');
-        if (!p1AnchorBehavior) throw new Error('No anchor behavior found');
-        p1AnchorBehavior.activate(false);
+        /** @type {gdjs.DummyRuntimeBehavior | null} */
+        // @ts-ignore - We know this returns an DummyRuntimeBehavior
+        const p1DummyBehavior = p1SpriteObject.getBehavior('DummyBehavior');
+        if (!p1DummyBehavior) throw new Error('No dummy behavior found');
+        p1DummyBehavior.activate(false);
         // As the object is not moving, it will not be synced a lot, so we need to wait a bit.
         await delay(20);
         p1RuntimeScene.renderAndStep(1000 / 60);
@@ -2222,15 +2222,15 @@ describe('Multiplayer', () => {
           p2RuntimeScene,
           'MySpriteObject'
         )[0];
-        /** @type {gdjs.AnchorRuntimeBehavior | null} */
-        // @ts-ignore - We know this returns an AnchorRuntimeBehavior
-        const p2AnchorBehavior = p2SpriteObject.getBehavior('AnchorBehavior');
-        if (!p2AnchorBehavior) throw new Error('No anchor behavior found');
-        expect(p2AnchorBehavior._activated).to.be(false);
+        /** @type {gdjs.DummyRuntimeBehavior | null} */
+        // @ts-ignore - We know this returns an DummyRuntimeBehavior
+        const p2DummyBehavior = p2SpriteObject.getBehavior('DummyBehavior');
+        if (!p2DummyBehavior) throw new Error('No dummy behavior found');
+        expect(p2DummyBehavior._activated).to.be(false);
       }
     });
 
-    it.only('does not synchronize object behaviors if defined as not synchronized', async () => {
+    it('does not synchronize object behaviors if defined as not synchronized', async () => {
       const { switchToPeer } = createMultiplayerManagersMock();
 
       // Create an instance on the host's game:
@@ -2249,19 +2249,18 @@ describe('Multiplayer', () => {
         p1RuntimeScene,
         'MySpriteObject'
       )[0];
-      // Ensure anchor behavior is there.
-      /** @type {gdjs.AnchorRuntimeBehavior | null} */
-      // @ts-ignore - We know this returns an AnchorRuntimeBehavior
-      const p1AnchorBehaviorOriginal = p1SpriteObjectOriginal.getBehavior(
-        'AnchorBehavior'
+      // Ensure dummy behavior is there.
+      /** @type {gdjs.DummyRuntimeBehavior | null} */
+      // @ts-ignore - We know this returns an DummyRuntimeBehavior
+      const p1DummyBehaviorOriginal = p1SpriteObjectOriginal.getBehavior(
+        'DummyBehavior'
       );
-      if (!p1AnchorBehaviorOriginal)
-        throw new Error('No anchor behavior found');
-      expect(p1AnchorBehaviorOriginal._activated).to.be(true);
+      if (!p1DummyBehaviorOriginal) throw new Error('No dummy behavior found');
+      expect(p1DummyBehaviorOriginal._activated).to.be(true);
       // Deactivate it and mark it as not synchronized.
-      p1AnchorBehaviorOriginal.activate(false);
+      p1DummyBehaviorOriginal.activate(false);
       p1SpriteMultiplayerObjectBehavior.enableBehaviorSynchronization(
-        'AnchorBehavior',
+        'DummyBehavior',
         false
       );
 
@@ -2282,17 +2281,16 @@ describe('Multiplayer', () => {
         p2RuntimeScene,
         'MySpriteObject'
       )[0];
-      // Ensure anchor behavior is there.
-      /** @type {gdjs.AnchorRuntimeBehavior | null} */
-      // @ts-ignore - We know this returns an AnchorRuntimeBehavior
-      const p2AnchorBehaviorOriginal = p2SpriteObjectOriginal.getBehavior(
-        'AnchorBehavior'
+      // Ensure dummy behavior is there.
+      /** @type {gdjs.DummyRuntimeBehavior | null} */
+      // @ts-ignore - We know this returns an DummyRuntimeBehavior
+      const p2DummyBehaviorOriginal = p2SpriteObjectOriginal.getBehavior(
+        'DummyBehavior'
       );
-      if (!p2AnchorBehaviorOriginal)
-        throw new Error('No anchor behavior found');
+      if (!p2DummyBehaviorOriginal) throw new Error('No dummy behavior found');
 
       // It is activated as it is not synchronized.
-      expect(p2AnchorBehaviorOriginal._activated).to.be(true);
+      expect(p2DummyBehaviorOriginal._activated).to.be(true);
     });
   });
 
